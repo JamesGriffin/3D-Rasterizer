@@ -45,11 +45,11 @@ int main(int argc, char* argv[]) {
 
         display.drawBackground();
 
-        d += 3 * float(SDL_GetTicks() - last_update) / 1000;
+        d += float(SDL_GetTicks() - last_update) / 1000;
         last_update = SDL_GetTicks();
 
-        Matrix4 tran = Matrix4::initTranslation(0, 0, 3.0).mul(
-            Matrix4::initRotation(0, 0.2, 0).mul(Matrix4::initScale(1, 1, 1)));
+        Matrix4 tran = Matrix4::initTranslation(0, 0, 4.0).mul(
+            Matrix4::initRotation(0, d, 0).mul(Matrix4::initScale(1, 1, 1)));
 
         tran = transfom.mul(proj).mul(tran);
         #pragma omp parallel for
