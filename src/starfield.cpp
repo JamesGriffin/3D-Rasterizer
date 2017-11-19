@@ -1,6 +1,8 @@
 #include <cstdlib>
 #include "starfield.h"
 
+//  Renders a 3D starfield effect
+
 StarField::StarField(unsigned int numStars, float spread, float speed)
 : m_numStars(numStars), m_spread(spread), m_speed(speed) {
     srand(0);
@@ -11,6 +13,7 @@ StarField::StarField(unsigned int numStars, float spread, float speed)
     }
 }
 
+// Intialise star to new position
 void StarField::initStar(int idx) {
     float r = rand() / (RAND_MAX + 1.0f);
     m_stars[3 * idx] = 2 * (r - 0.5f) * m_spread;
@@ -22,6 +25,7 @@ void StarField::initStar(int idx) {
     m_stars[3 * idx + 2] = r + 0.00001f;
 }
 
+// Render to display
 void StarField::render(Display &display) {
     float half_width = (float)display.getWidth() / 2.0f;
     float half_height = (float)display.getHeight() / 2.0f;
@@ -47,6 +51,7 @@ void StarField::render(Display &display) {
 
 }
 
+// Clean up
 StarField::~StarField() {
     delete[] m_stars;
 };

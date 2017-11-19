@@ -18,19 +18,18 @@ private:
     TTF_Font * m_font;
     Uint32* m_frameBuffer;
     Uint32 m_lastUpdate = 0;
-    float m_frameDelta  = 0;
-
+    float m_frameDelta  = 0;    
 public:
     Display (int width, int height, std::string title);
-    int getWidth();
-    int getHeight();
-    float getFrameDelta();
     void drawBackground();
     void clear(SDL_Color c);
     void drawPixel(int x, int y, SDL_Color c);
     void drawPixelFast(int x, int y, Uint32);
     void drawText(std::string text, int x, int y);
     void update();
+    int getWidth();
+    int getHeight();
+    float getFrameDelta();
     virtual ~Display ();
 
 };

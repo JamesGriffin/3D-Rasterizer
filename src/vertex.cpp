@@ -1,19 +1,26 @@
 #include "vertex.h"
 
-Vertex::Vertex (Vector4 position)
-: m_position(position) {}
+// Represents a vertex in 3D space
+
+Vertex::Vertex (Vector4 position, Vector4 normal)
+: m_position(position), m_normal(normal) {}
 
 Vertex::Vertex(float x, float y, float z, float w) {
     m_position = Vector4(x, y, z, w);
+    m_normal = Vector4(0, 0, 0, 0);
 }
 
+// Perspective divide by w component
 Vertex Vertex::perspectiveDivide() {
     float w_inv = 1.0f / getW();
     return Vertex(
-        getX() * w_inv,
-        getY() * w_inv,
-        getZ() * w_inv,
-        getW()
+        Vector4(
+            getX() * w_inv,
+            getY() * w_inv,
+            getZ() * w_inv,
+            getW()
+        ),
+        m_normal
     );
 }
 
@@ -21,8 +28,12 @@ Vector4 Vertex::getPos() {
     return m_position;
 }
 
-Vertex Vertex::transform(Matrix4 m) {
-    return Vertex(m.transform(m_position));
+Vector4 Vertex::getNormal() {
+    return m_normal;
+}
+
+Vertex Vertex::transform(Matrix4 m, Matrix4 n) {
+    return Vertex(m.transform(m_position), n.transform(m_normal));
 }
 
 float Vertex::getX() {

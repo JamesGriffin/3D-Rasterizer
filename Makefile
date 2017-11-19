@@ -1,5 +1,5 @@
 LIBS = -lSDL2 -lSDL2main -lSDL2_ttf
-CFLAGS = -Wall -std=c++11 -O3 -g -fopenmp
+CFLAGS = -Wall -std=c++11 -g -fopenmp -O3
 
 
 SRC=$(wildcard src/*.cpp)
@@ -9,3 +9,7 @@ rasterizer: $(SRC)
 
 run:
 	./rasterizer
+
+build_and_run:  $(SRC)
+		g++ -o rasterizer $^ $(CFLAGS) $(LIBS)
+		./rasterizer

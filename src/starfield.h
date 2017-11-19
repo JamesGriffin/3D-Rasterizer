@@ -13,5 +13,4 @@ public:
     void initStar(int idx);
     void render(Display &display);
     virtual ~StarField ();
-
 };

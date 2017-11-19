@@ -4,6 +4,7 @@
 #include "matrix4.h"
 #include "vector4.h"
 
+// Initialise identity matrix
 Matrix4::Matrix4() {
     float m[4][4] = {
         {1, 0, 0, 0},
@@ -15,10 +16,12 @@ Matrix4::Matrix4() {
     setMatrix(m);
 }
 
+// Initalise matrix from 2D array
 Matrix4::Matrix4(float matrix[][4]) {
     memcpy(m_matrix, matrix, sizeof(m_matrix));
 }
 
+// Set matrix from 2D array
 void Matrix4::setMatrix(float matrix[][4]) {
     memcpy(m_matrix, matrix, sizeof(m_matrix));
 }
@@ -27,6 +30,7 @@ float Matrix4::get(int i, int j) {
     return m_matrix[i][j];
 }
 
+// Initalise and return screen space transform matrix
 Matrix4 Matrix4::initScreenSpaceTransform(float width, float height) {
         float half_width = width / 2.0f;
         float half_height = height / 2.0f;
@@ -41,6 +45,7 @@ Matrix4 Matrix4::initScreenSpaceTransform(float width, float height) {
         return Matrix4(m);
 }
 
+// Initalise and return perspective profection matrix
 Matrix4 Matrix4::initPerspective(float fov, float aspectRatio, float zNear, float zFar) {
     float tanHalfFOV = (float)tan(fov / 2);
     float zRange = zNear - zFar;
@@ -54,6 +59,7 @@ Matrix4 Matrix4::initPerspective(float fov, float aspectRatio, float zNear, floa
     return Matrix4(m);
 }
 
+// Initalise and return translation matrix
 Matrix4 Matrix4::initTranslation(float x, float y, float z) {
     float m[4][4] = {
         {1, 0, 0, x},
@@ -65,6 +71,7 @@ Matrix4 Matrix4::initTranslation(float x, float y, float z) {
     return Matrix4(m);
 }
 
+// Initalise and return rotation matrix
 Matrix4 Matrix4::initRotation(float x, float y, float z) {
     float mz[4][4] = {
         {(float)cos(z), -(float)sin(z), 0, 0},
@@ -88,11 +95,9 @@ Matrix4 Matrix4::initRotation(float x, float y, float z) {
     };
 
     return Matrix4(mx).mul(Matrix4(my)).mul(Matrix4(mz));
-
-
-
 }
 
+// Initalise and return scaling matrix
 Matrix4 Matrix4::initScale(float x, float y, float z) {
     float m[4][4] = {
         {x, 0, 0, 0},
@@ -104,6 +109,7 @@ Matrix4 Matrix4::initScale(float x, float y, float z) {
     return Matrix4(m);
 }
 
+// Transform Vector4 by matrix and returb result
 Vector4 Matrix4::transform(Vector4 r) {
     return Vector4(
         m_matrix[0][0] * r.x + m_matrix[0][1] * r.y + m_matrix[0][2] * r.z + m_matrix[0][3] * r.w,
@@ -113,6 +119,7 @@ Vector4 Matrix4::transform(Vector4 r) {
     );
 }
 
+// Multiply matrices and return result
 Matrix4 Matrix4::mul(Matrix4 r) {
     float m[4][4] = {};
 
