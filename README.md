@@ -2,7 +2,8 @@
 3D Software Rasterizer in C++
 
 ![Screenshot](doc/screenshots/dragon.png)
-[Standford Dragon](http://graphics.stanford.edu/data/3Dscanrep/)
+
+Mesh: [Standford Dragon](http://graphics.stanford.edu/data/3Dscanrep/)
 
 
 This is a C++ rewrite of my original [Python software renderer](https://github.com/JamesGriffin/SoftwareRenderer).
