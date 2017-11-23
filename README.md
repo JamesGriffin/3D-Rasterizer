@@ -3,7 +3,7 @@
 
 ![Screenshot](doc/screenshots/dragon.png)
 
-Mesh: [Standford Dragon](http://graphics.stanford.edu/data/3Dscanrep/)
+Mesh: [Stanford Dragon](http://graphics.stanford.edu/data/3Dscanrep/)
 
 
 This is a C++ rewrite of my original [Python software renderer](https://github.com/JamesGriffin/SoftwareRenderer).
