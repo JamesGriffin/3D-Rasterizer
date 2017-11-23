@@ -18,7 +18,10 @@ private:
     TTF_Font * m_font;
     Uint32* m_frameBuffer;
     Uint32 m_lastUpdate = 0;
-    float m_frameDelta  = 0;    
+    float m_frameDelta  = 0;
+    int m_frames = 0;
+    int m_frameRate = 0;
+    float m_frame_counter = 0;    
 public:
     Display (int width, int height, std::string title);
     void drawBackground();
@@ -30,6 +33,7 @@ public:
     int getWidth();
     int getHeight();
     float getFrameDelta();
+    int getFrameRate();
     virtual ~Display ();
 
 };

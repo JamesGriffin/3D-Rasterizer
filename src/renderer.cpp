@@ -54,6 +54,12 @@ void Renderer::drawLine(float x1, float y1, float x2, float y2, Uint32 color) {
 
 // Draw triangle outline defined by vertices v0, v1, v2
 void Renderer::drawTriangleOutline(Vertex v0, Vertex v1, Vertex v2, Uint32 color) {
+    float w = std::min(v0.getW(), std::min(v1.getW(), v2.getW()));
+
+    if (w < 0) {
+        return;
+    }
+
     drawLine(v0.getX(), v0.getY(), v1.getX(), v1.getY(), color);
     drawLine(v0.getX(), v0.getY(), v2.getX(), v2.getY(), color);
     drawLine(v1.getX(), v1.getY(), v2.getX(), v2.getY(), color);
@@ -61,7 +67,7 @@ void Renderer::drawTriangleOutline(Vertex v0, Vertex v1, Vertex v2, Uint32 color
 
 // Calculates edge rule for determining if point lies inside a Triangle
 // This is also used to calculate barycentric coordinates
-float orient2D(Vector4 a, Vector4 b, Vector4 c) {
+float Renderer::orient2D(Vector4 a, Vector4 b, Vector4 c) {
     return (b.x-a.x)*(c.y-a.y) - (b.y-a.y)*(c.x-a.x);
 }
 
@@ -85,58 +91,67 @@ void Renderer::drawTriangle(Vertex v0, Vertex v1, Vertex v2, Uint32 color) {
     }
 
     // Get triangle axis-aligned bounding box
-    Triangle t(v0, v1, v2);
-    AABB box = t.getAABB();
+    Triangle tri(v0, v1, v2);
+    AABB box = tri.getAABB();
 
     int min_x = std::max((int)box.minPoint.x, 0);
     int min_y = std::max((int)box.minPoint.y, 0);
     int max_x = std::min((int)box.maxPoint.x, m_display.getWidth() - 1);
     int max_y = std::min((int)box.maxPoint.y, m_display.getHeight() - 1);
 
-    // Calculate 1 / 2 x area
-    // This is used further below to calulate normalised barycentric coordinates
+    // Calculate inverse 2*area
+    // This is used further below to normalise our barycentric coordinates
     float a = 1.0f / orient2D(v0.getPos(), v1.getPos(), v2.getPos());
 
-    Vector4 p(0, 0);
+    // Vector that represents directional light used for shading
+    Vector4 light = Vector4(0.2, -0.3, 1, 0).norm();
+
+    // Calculate shading for each vertex. We multiply by 'a' here to give
+    // normalised coordinates when multiplying by w0, w1, w2 further down
+    float l0 = -v0.getNormal().norm().dot(light) * a;
+    float l1 = -v1.getNormal().norm().dot(light) * a;
+    float l2 = -v2.getNormal().norm().dot(light) * a;
+
+    // Calculate highlights for each vertex
+    float r0 = a *((v0.getNormal().norm() - light) * -2 * (light.dot(v0.getNormal().norm()))).dot(Vector4(0, 0, -1, 0));
+    float r1 = a *((v1.getNormal().norm() - light) * -2 * (light.dot(v1.getNormal().norm()))).dot(Vector4(0, 0, -1, 0));
+    float r2 = a *((v2.getNormal().norm() - light) * -2 * (light.dot(v2.getNormal().norm()))).dot(Vector4(0, 0, -1, 0));
 
     // Loop through pixels in bounding box
+    Vector4 p(0, 0);
+
     for (p.y = min_y; p.y <= max_y; p.y++) {
         for (p.x = min_x; p.x <= max_x; p.x++) {
+
             // Triangle edge rules
-            int w0 = (int)orient2D(v1.getPos(), v2.getPos(), p);
-            int w1 = (int)orient2D(v2.getPos(), v0.getPos(), p);
-            int w2 = (int)orient2D(v0.getPos(), v1.getPos(), p);
-
-            // Barycentric coordinates
-            float w0f = orient2D(v1.getPos(), v2.getPos(), p) * a;
-            float w1f = orient2D(v2.getPos(), v0.getPos(), p) * a;
-            float w2f = orient2D(v0.getPos(), v1.getPos(), p) * a;
-
-            // Calculate interpolated z value for depth culling
-            float z = v0.getZ() + (w1 * a)*(v1.getZ() - v0.getZ()) + (w2 * a)*(v2.getZ() - v0.getZ());
+            float w0 = orient2D(v1.getPos(), v2.getPos(), p);
+            float w1 = orient2D(v2.getPos(), v0.getPos(), p);
+            float w2 = orient2D(v0.getPos(), v1.getPos(), p);
 
             // Check if pixel lies inside of triangle
             if (w0 >= 0 && w1 >= 0 && w2 >= 0) {
+
+                // Calculate interpolated z value for depth culling
+                float z = v0.getZ() + (w1 * a)*(v1.getZ() - v0.getZ()) + (w2 * a)*(v2.getZ() - v0.getZ());
+
                 // Check depth against zbuffer
-                if (z < m_zBuffer[(int)p.y * m_display.getWidth() + (int)p.x]) {
+                int Z_buffer_idx = (int)p.y * m_display.getWidth() + (int)p.x;
+
+                if (z < m_zBuffer[Z_buffer_idx]) {
+
                     // Set new value in zbuffer if point is closer
-                    m_zBuffer[(int)p.y * m_display.getWidth() + (int)p.x] = z;
+                    m_zBuffer[Z_buffer_idx] = z;
 
-                    // Vector that represents directional light used for shading
-                    Vector4 light = Vector4(-0.1, 0, 1, 0).norm();
+                    // Combine weighted values to calculate inerpolated shading at pixel.
+                    // l0, l1, l2 have already been multipled by inverse 2*area
+                    // further up so there is no need to normalise w0, w1, w2
+                    float shading = l0*w0 + l1*w1 + l2*w2;
 
-                    // Calculate shaded lighting for each vertex weighted by
-                    // barycentric coordinates
-                    float l0 = -v0.getNormal().norm().dot(light) * w0f;
-                    float l1 = -v1.getNormal().norm().dot(light) * w1f;
-                    float l2 = -v2.getNormal().norm().dot(light) * w2f;
-
-                    // Combine to values to calculate inerpolated shading at pixel
-                    float shading = l0 + l1 + l2;
+                    shading = 0.9 * shading + (5 * pow(10, -11)) * pow(r0*w0/3 + r1*w1/3 + r2*w2/3, 100);
 
                     // Clip and add ambient light
-                    if (shading < 0.1f) {
-                        shading = 0.1f;
+                    if (shading < 0.08f) {
+                        shading = 0.08f;
                     }
                     if (shading > 1.0f) {
                         shading = 1.0f;
@@ -144,7 +159,8 @@ void Renderer::drawTriangle(Vertex v0, Vertex v1, Vertex v2, Uint32 color) {
 
                     // Draw pixel to display
                     m_display.drawPixelFast((int)ceilf(p.x), (int)ceilf(p.y),
-                        (255 << 24) | (int(shading * 255+0.5f) << 16) | (int(shading * 255+0.5f) << 8) | (int(shading * 255+0.5f)));
+                        (255 << 24) | (int(shading * 255+0.5f) << 16) | (int(shading *255+0.5f) << 8) | (int(shading *255+0.5f)));
+
                 }
             }
         }
@@ -152,7 +168,7 @@ void Renderer::drawTriangle(Vertex v0, Vertex v1, Vertex v2, Uint32 color) {
 }
 
 // Draw transformed mesh
-void Renderer::drawMesh(Mesh mesh, Matrix4 transform, Uint32 color) {
+void Renderer::drawMesh(Mesh mesh, Matrix4 transform, Uint32 color, bool fill) {
     // Initialise screenspace transform
     Matrix4 ss_transform = Matrix4::initScreenSpaceTransform(
         m_display.getWidth(), m_display.getHeight()
@@ -170,7 +186,7 @@ void Renderer::drawMesh(Mesh mesh, Matrix4 transform, Uint32 color) {
     // Loop over shapes in mesh file
     for (size_t s = 0; s < mesh.shapes.size(); s++) {
         // Loop over faces(polygons) in shape
-        #pragma omp parallel for
+        #pragma omp parallel for schedule(dynamic, 3)
         for (size_t f = 0; f < mesh.shapes[s].mesh.indices.size(); f+=3) {
 
             // Create vertex instances that form triangle and apply transformations
@@ -222,7 +238,24 @@ void Renderer::drawMesh(Mesh mesh, Matrix4 transform, Uint32 color) {
             ).transform(transform, normal_transform).perspectiveDivide();
 
             // Draw triangle
-            drawTriangle(v0, v1, v2, color);
+            if (fill) {
+                drawTriangle(v0, v1, v2, color);
+            }
+            else {
+                drawTriangleOutline(v2, v1, v0, color);
+            }
+        }
+    }
+}
+
+void Renderer::drawZBuffer() {
+    for (int x = 0; x < m_display.getWidth(); x++) {
+        for (int y = 0; y < m_display.getHeight(); y++) {
+            float shading = ( 1 + m_zBuffer[y * m_display.getWidth() + x]) / 2;
+            if (shading < 0) {
+                shading = 0;
+            }
+            m_display.drawPixelFast(x, y, (255 << 24) | (int(shading * 255+0.5f) << 16) | (int(shading * 255+0.5f) << 8) | (int(shading * 255+0.5f)));
         }
     }
 }

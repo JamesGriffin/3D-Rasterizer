@@ -13,12 +13,13 @@ Display::Display(int width, int height, std::string title)
     // Create SDL window
     m_window = SDL_CreateWindow(
         m_title.c_str(),
-        SDL_WINDOWPOS_UNDEFINED,
-        SDL_WINDOWPOS_UNDEFINED,
+        SDL_WINDOWPOS_CENTERED,
+        SDL_WINDOWPOS_CENTERED,
         m_width,
         m_height,
         SDL_WINDOW_OPENGL
-  );
+    );
+    //SDL_SetWindowFullscreen(m_window, SDL_WINDOW_FULLSCREEN_DESKTOP);
     // Create renderer
     m_renderer = SDL_CreateRenderer(
         m_window,
@@ -40,10 +41,10 @@ Display::Display(int width, int height, std::string title)
         for (int y = 0; y < m_height; y++) {
             if ((y % (64) < 32)
                 == (x % (64) < 32)) {
-                buffer[y * width + x] = 0xFF242424;
+                buffer[y * width + x] = 0xFF262626;
             }
             else {
-                buffer[y * width + x] = 0xFF2A2A2A;
+                buffer[y * width + x] = 0xFF232323;
             }
         }
     }
@@ -63,7 +64,7 @@ Display::Display(int width, int height, std::string title)
     memset(m_frameBuffer, 0x00000000, width * height * sizeof(Uint32));
 
     // Load font for drawing text
-    m_font = TTF_OpenFont("fonts/FreeSans.ttf", 14);
+    m_font = TTF_OpenFont("fonts/Quicksand-Medium.ttf", 14);
 }
 
 // Draw pixel to directly to display surface at x,y (slow)
@@ -97,7 +98,7 @@ void Display::clear(SDL_Color c) {
 
 // Draw text to display surface at position x,y
 void Display::drawText(std::string text, int x, int y) {
-    SDL_Color color = { 255, 255, 255 };
+    SDL_Color color = { 128, 128, 128 };
     SDL_Surface * surface = TTF_RenderText_Blended(m_font, text.c_str(), color);
     SDL_Texture * texture = SDL_CreateTextureFromSurface(m_renderer, surface);
     int texW = 0;
@@ -119,7 +120,7 @@ void Display::update() {
     SDL_RenderCopy(m_renderer, m_frameTexture, NULL, NULL);
 
     // Draw FPS counter
-    drawText(std::to_string((int)(1.0f/getFrameDelta())) + " FPS", 8, 8);
+    drawText(std::to_string(getFrameRate()) + " FPS", 8, 8);
 
     // Present image
     SDL_RenderPresent(m_renderer);
@@ -131,6 +132,16 @@ void Display::update() {
     Uint32 t = SDL_GetTicks();
     m_frameDelta = float(t - m_lastUpdate) / 1000;
     m_lastUpdate = t;
+
+    // Average framerate over a 0.25 second period
+    m_frame_counter += m_frameDelta;
+    m_frames++;
+
+    if (m_frame_counter >= 0.25) {
+        m_frameRate = m_frames / m_frame_counter;
+        m_frame_counter = 0;
+        m_frames = 0;
+    }
 }
 
 int Display::getWidth() {
@@ -143,6 +154,10 @@ int Display::getHeight() {
 
 float Display::getFrameDelta() {
     return m_frameDelta;
+}
+
+int Display::getFrameRate() {
+    return m_frameRate;
 }
 
 Display::~Display() {
