@@ -98,6 +98,7 @@ int main(int argc, char* argv[]) {
                 switch (event.key.keysym.sym) {
                     case SDLK_ESCAPE:
                         is_running = false;
+                        break;
                     case SDLK_f:
                         fill = !fill;
                         break;
@@ -133,6 +134,7 @@ int main(int argc, char* argv[]) {
                         break;
                     case SDLK_DOWN:
                         cam_rot_x -= 0.1f;
+                        break;
                 }
             }
         }
