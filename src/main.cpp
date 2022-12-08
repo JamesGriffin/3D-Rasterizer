@@ -93,6 +93,8 @@ int main(int argc, char* argv[]) {
             }
             if (event.type == SDL_KEYDOWN) {
                 switch (event.key.keysym.sym) {
+                    case SDLK_ESCAPE:
+                        is_running = false;
                     case SDLK_f:
                         fill = !fill;
                         break;
