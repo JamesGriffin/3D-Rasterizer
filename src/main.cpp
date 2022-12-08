@@ -31,7 +31,6 @@ int main(int argc, char* argv[]) {
     Renderer renderer(display);
 
     SDL_Event event;
-    Uint32 last_update = SDL_GetTicks();
     display.drawBackground();
     display.update();
 
@@ -58,6 +57,8 @@ int main(int argc, char* argv[]) {
     // Main loop
     while (is_running) {
 
+        float delta = display.getFrameDelta();
+        
         // Poll SDL events
         while (SDL_PollEvent(&event)) {
             if (event.type == SDL_QUIT) {
@@ -84,8 +85,8 @@ int main(int argc, char* argv[]) {
             }
             if (event.type == SDL_MOUSEMOTION) {
                 if (mouse_clicked == 1) {
-                    rot_x -= event.motion.xrel * 0.0174533;
-                    rot_y -= event.motion.yrel * 0.0174533;
+                    rot_x -= event.motion.xrel * delta;
+                    rot_y -= event.motion.yrel * delta;
                 }
                 if (mouse_clicked == 2) {
                     tran_x += ((float)(event.motion.xrel)) * (4.0/WIDTH);
@@ -141,9 +142,8 @@ int main(int argc, char* argv[]) {
 
         // Update rotation amount for animation
         if (!mouse_clicked && animate) {
-            rot_x -= float(SDL_GetTicks() - last_update) / 1000;
+            rot_x -= delta;
         }
-        last_update = SDL_GetTicks();
 
         // Create new transformation matrix
         Matrix4 transform =
