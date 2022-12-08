@@ -73,6 +73,11 @@ Matrix4 Matrix4::initTranslation(float x, float y, float z) {
 
 // Initalise and return rotation matrix
 Matrix4 Matrix4::initRotation(float x, float y, float z) {
+    // Rotation Matrix for Z axis
+    // | c -s  0  0 |
+    // | s  c  0  0 |
+    // | 0  0  1  0 |
+    // | 0  0  0  1 |
     float mz[4][4] = {
         {(float)cos(z), -(float)sin(z), 0, 0},
         {(float)sin(z), (float)cos(z), 0, 0},
@@ -80,13 +85,23 @@ Matrix4 Matrix4::initRotation(float x, float y, float z) {
         {0, 0, 0, 1}
     };
 
+    // Rotation Matrix for Y axis
+    // | c  0  s  0 |
+    // | 0  1  0  0 |
+    // |-s  0  c  0 |
+    // | 0  0  0  1 |
     float my[4][4] = {
-        {(float)cos(y), 0, -(float)sin(y), 0},
+        {(float)cos(y), 0, (float)sin(y), 0},
         {0, 1, 0, 0},
-        {(float)sin(y), 0, (float)cos(y), 0},
+        {-(float)sin(y), 0, (float)cos(y), 0},
         {0, 0, 0, 1}
     };
 
+    // Rotation Matrix for X axis
+    // | 1  0  0  0 |
+    // | 0  c -s  0 |
+    // | 0  s  c  0 |
+    // | 0  0  0  1 |
     float mx[4][4] = {
         {1, 0, 0, 0},
         {0, (float)cos(x), -(float)sin(x), 0},
