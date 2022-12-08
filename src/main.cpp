@@ -47,6 +47,7 @@ int main(int argc, char* argv[]) {
 
     bool is_running = true;
     float rot_x = 0.0f;
+    float rot_y = 0.0f;
     float tran_x = 0.0f;
     float tran_y = 0.0f;
     float zoom = 1.0f;
@@ -83,7 +84,8 @@ int main(int argc, char* argv[]) {
             }
             if (event.type == SDL_MOUSEMOTION) {
                 if (mouse_clicked == 1) {
-                    rot_x += event.motion.xrel * 0.0174533;
+                    rot_x -= event.motion.xrel * 0.0174533;
+                    rot_y -= event.motion.yrel * 0.0174533;
                 }
                 if (mouse_clicked == 2) {
                     tran_x += ((float)(event.motion.xrel)) * (4.0/WIDTH);
@@ -146,7 +148,7 @@ int main(int argc, char* argv[]) {
         // Create new transformation matrix
         Matrix4 transform =
             Matrix4::initTranslation(tran_x, tran_y, 4 * zoom)
-                .mul(Matrix4::initRotation(0, rot_x, 0)
+                .mul(Matrix4::initRotation(rot_y, rot_x, 0)
                     .mul(Matrix4::initScale(1, 1, 1))
                 );
 
